@@ -1,0 +1,12 @@
+{
+    "typescript.tsdk": "node_modules/typescript/lib/",
+    "eslint.enable": false,
+    "tslint.enable": true,
+    "editor.formatOnSave": true,
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "test/**/*.js": {"when": "$(basename).ts"},
+        "lib/*": true
+    }
+}

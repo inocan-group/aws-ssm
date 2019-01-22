@@ -1,0 +1,14 @@
+{
+  "generator-typescript-microservice": {
+    "promptValues": {
+      "appName": "aws-ssm",
+      "serverless": "library-function",
+      "features": [
+        "wallaby"
+      ],
+      "license": "Proprietary",
+      "coverage": [],
+      "social": []
+    }
+  }
+}
