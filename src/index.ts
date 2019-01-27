@@ -88,11 +88,35 @@ export default class SSM {
     });
   }
 
+  public async convertToEnv(Name: string, options: ISsmGetOptions = {}) {
+    const result = await this.get(Name, options);
+    if (result.encrypted) {
+      const e = new Error(
+        `Can not convert to ENV an encrypted value at "${Name}"; always use { decrypt: true } config.`
+      );
+      e.name = "NotAllowed";
+      throw e;
+    }
+
+    const varName = `${result.parts.app.toUpperCase()}_${result.parts.name.toUpperCase()}`;
+    process.env[varName] = String(result.value);
+  }
+
+  /**
+   * put
+   *
+   * Puts a value into SSM and then returns the version number
+   * on success.
+   *
+   * @param Name The name/path of the variable
+   * @param Value The value to set to
+   * @param options Any additional options needed
+   */
   public async put(
     Name: string,
     Value: SsmValue,
     options: ISsmSetOptions = {}
-  ): Promise<{ version: number }> {
+  ): Promise<number> {
     return new Promise(async (resolve, reject) => {
       Value = coerceValueToString(Value);
       const Description = options.description
@@ -119,9 +143,10 @@ export default class SSM {
       this._ssm.putParameter(request, (err, data) => {
         if (err) {
           reject(err);
+          return;
         }
 
-        resolve({ version: data.Version });
+        resolve(data.Version);
       });
     });
   }
@@ -140,6 +165,16 @@ export default class SSM {
       try {
         this._ssm.deleteParameter(request, (err, data) => {
           if (err) {
+            if (err.name === "ParameterNotFound") {
+              const e = new Error(
+                `The parameter "${Name}" could not be found (and therefore could not be deleted)!`
+              );
+              e.name = "ParameterNotFound";
+              e.stack = err.stack;
+              reject(e);
+              return;
+            } else {
+            }
             reject(err);
           }
 
