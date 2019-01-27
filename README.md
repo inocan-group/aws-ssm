@@ -100,7 +100,7 @@ configure **aws-ssm**:
 const ssm = new SSM({ profile: "myProject" });
 ```
 
-### Serverless Config
+### Deploy Time Serverless Config
 
 When your serverless functions run you need to ensure they have permission to execute SSM
 actions. Assuming you are using the [Serverless Framework](https://serverless.com), you
@@ -124,23 +124,42 @@ actually probably a smarter strategy would be to limit access to the _stage_ you
 
 > Resource: [ `'arn:aws:ssm:${REGION}:${ACCOUNT}:parameter-${STAGE}*'` ]
 
-### Alternative Config
-
-If you want you can also programatically add in the AWS Credentials at run time rather
-than giving the function permission at build time:
+Final note, if it wasn't clear. When you give permissions at deploy time, your code
+executed at run time needs zero config because it by default has permissions:
 
 ```typescript
-const ssm = new SSM({});
+const ssm = new SSM();
 ```
+
+### Runtime Serverless Config
+
+If you want you can also programatically add in the AWS Credentials at run time:
+
+```typescript
+const ssm = new SSM({
+  CredentialsOptions: {
+    accessKey: "abc",
+    secretAccessKey: "123"
+  }
+});
+```
+
+### Other Config Options
+
+You can also add the following config items to your configuration (regardless of which
+strategy from above you use):
+
+- `cli` - by default this logger will not output anything to **stdout** but if you turn
+  this on with a "TRUE" then it will output useful CLI output
+- `defaultType` - by default variables will be presumed to be of type "SecureString" but
+  you change this to "String" if you prefer that as a default type
 
 ## Examples
 
 ### Get a Variable
 
 ```typescript
-const ssm = new SSM({
-  /** config */
-});
+const ssm = new SSM();
 ssm.get(")
 ```
 
