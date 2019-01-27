@@ -35,19 +35,18 @@ describe("basics →", () => {
   });
 });
 
-describe("simple lifecycle test (put, get, remove) → ", () => {
+describe.only("simple lifecycle test (put, get, remove) → ", () => {
   const ssm = new SSM({ profile: "ssm" });
-  const PATH = "/Testing/test/foo";
+  const PATH = "/test/1/firebase/FOO";
   const VALUE = "this is a test";
+
   it("PUT path based value works and parts are identified", async () => {
     try {
       const response = await ssm.put(PATH, VALUE);
-      expect(response)
-        .to.be.an("object")
-        .and.have.property("version");
-      expect(response.version).to.equal(1);
+      expect(response).to.be.an("number");
+      expect(response).to.equal(1);
     } catch (e) {
-      // console.log(`Problem putting parameter ${PATH}`, e.message);
+      console.log(`  - Problem putting parameter ${PATH}`, e.message);
       throw e;
     }
   });
@@ -55,6 +54,7 @@ describe("simple lifecycle test (put, get, remove) → ", () => {
   it("GET parameter works", async () => {
     try {
       const response = await ssm.get(PATH);
+
       expect(response.version).to.equal(1);
       expect(response.path).to.equal(PATH);
       expect(response.type).to.equal("SecureString");
@@ -63,16 +63,15 @@ describe("simple lifecycle test (put, get, remove) → ", () => {
       expect(response.value).to.be.a("string");
       expect(response.encrypted).to.equal(true);
     } catch (e) {
-      // console.log(`Problem GETing parameter "${PATH}"`, e.message);
+      console.log(`Problem GETing parameter "${PATH}"`, e.message);
       throw e;
     }
   });
 
-  it.skip("DELETE parameter works", async () => {
+  it("DELETE parameter works", async () => {
     try {
-      await ssm.delete(PATH);
       const noExist = await ssm.delete(PATH);
-      // expect(noExist).to.equal(null);
+      expect(noExist).to.equal(null);
     } catch (e) {
       console.log(`Problem deleting parameter ${PATH}`, e.message);
       throw e;
