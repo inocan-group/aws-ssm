@@ -64,6 +64,9 @@ export default class SSM {
       const request: AwsSSM.GetParameterRequest = {
         Name
       };
+      if (options.decrypt) {
+        request.WithDecryption = true;
+      }
 
       this._ssm.getParameter(request, (err, data) => {
         if (err) {
@@ -154,7 +157,38 @@ export default class SSM {
   /** an alias for the PUT operation */
   public set = this.put.bind(this);
 
-  public list(options: ISsmListOptions = {}) {}
+  public async list(options: ISsmListOptions): Promise<AWS.SSM.Parameter[]> {
+    return new Promise((resolve, reject) => {
+      if (options.path) {
+        const request: AWS.SSM.GetParametersByPathRequest = {
+          Path: options.path
+        };
+        if (options.decrypted) {
+          request.WithDecryption = true;
+        }
+        this._ssm.getParametersByPath(request, (err, data) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(data.Parameters);
+          }
+        });
+      } else {
+        this._ssm.describeParameters((err, data) => {
+          if (err) {
+            reject(err);
+          } else {
+            if (options.contains) {
+              resolve(
+                data.Parameters.filter(p => p.Name.includes(options.contains))
+              );
+            }
+            resolve(data.Parameters);
+          }
+        });
+      }
+    });
+  }
 
   public async delete(Name: string, options: ISsmRemoveOptions = {}) {
     const request: AwsSSM.DeleteParameterRequest = {

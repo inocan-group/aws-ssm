@@ -51,7 +51,7 @@ describe.only("simple lifecycle test (put, get, remove) → ", () => {
     }
   });
 
-  it("GET parameter works", async () => {
+  it("GET parameter works (without decryption)", async () => {
     try {
       const response = await ssm.get(PATH);
 
@@ -62,16 +62,63 @@ describe.only("simple lifecycle test (put, get, remove) → ", () => {
       expect(response.arn).to.be.a("string");
       expect(response.value).to.be.a("string");
       expect(response.encrypted).to.equal(true);
+      expect(response.value).to.not.equal(VALUE);
     } catch (e) {
       console.log(`Problem GETing parameter "${PATH}"`, e.message);
       throw e;
     }
   });
 
+  it("GET parameter works (with decryption)", async () => {
+    try {
+      const response = await ssm.get(PATH, { decrypt: true });
+
+      expect(response.version).to.equal(1);
+      expect(response.path).to.equal(PATH);
+      expect(response.type).to.equal("SecureString");
+      expect(response.lastUpdated).to.be.a("date");
+      expect(response.arn).to.be.a("string");
+      expect(response.value).to.be.a("string");
+      expect(response.encrypted).to.equal(false);
+      expect(response.value).to.equal(VALUE);
+    } catch (e) {
+      console.log(`Problem GETing parameter "${PATH}"`, e.message);
+      throw e;
+    }
+  });
+
+  it("LIST with 'path' returns results with the value", async () => {
+    const params = await ssm.list({
+      path: "/test/1/firebase",
+      decrypted: true
+    });
+
+    expect(params).to.have.length(1);
+    expect(params[0].Value).to.equal(VALUE);
+
+    const params2 = await ssm.list({
+      path: "/test/1/firebase",
+      decrypted: false
+    });
+
+    expect(params2).to.have.length(1);
+    expect(params2[0].Value).to.exist.and.to.not.equal(VALUE);
+  });
+
+  it("LIST with 'contains' returns results but without the value", async () => {
+    const params = await ssm.list({
+      contains: "/test/1"
+    });
+
+    expect(params).to.have.length(1);
+    expect(params[0].Value).to.not.exist;
+    expect(params[0].Type).to.equal("SecureString");
+  });
+
   it("DELETE parameter works", async () => {
     try {
       const noExist = await ssm.delete(PATH);
-      expect(noExist).to.equal(null);
+      // expect(noExist).to.equal({});
     } catch (e) {
       console.log(`Problem deleting parameter ${PATH}`, e.message);
       throw e;

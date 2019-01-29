@@ -72,6 +72,13 @@ export interface ISsmSetOptions {
   encryptionKey?: string;
 }
 
-export interface ISsmListOptions {}
+export interface ISsmListOptions {
+  /** restrict list to only those parameters at a particular path */
+  path?: string;
+  /** restrict list to only those parameters which have the given text in them */
+  contains?: string;
+  /** should all results be decrypted */
+  decrypted?: boolean;
+}
 
 export interface ISsmRemoveOptions {}

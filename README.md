@@ -156,11 +156,33 @@ strategy from above you use):
 
 ## Examples
 
-### Get a Variable
+### Get a Secret
 
 ```typescript
 const ssm = new SSM();
-ssm.get(")
+const serviceAccount = await ssm.get("prod/firebase/SERVICE_ACCOUNT");
+```
+
+### Convert to ENV variables
+
+```typescript
+// Example shows a common location for this API call ...
+// (aka., at the entry of the serverless function)
+export function handler(evt, context, callback) {
+  // converts all secrets in the given stage
+  await SSM.convertToEnv();
+  // if you haven't set AWS_STAGE, then ...
+  await SSM.convertToEnv("/prod");
+  // if you only want specific secrets ...
+  await SSM.convertToEnv(`/${process.env.AWS_STAGE}/firebase`);
+}
+```
+
+### Set a Secret
+
+```typescript
+const ssm = new SSM();
+const serviceAccount = await ssm.set("prod/firebase/SERVICE_ACCOUNT");
 ```
 
 The above API surface is to give you a quick overview of how you might use/interact with
