@@ -16,11 +16,6 @@ npm install aws-ssm
 yarn add aws-ssm
 ```
 
-> **Note:** this library requires `aws-sdk` to work and it is listed as a
-> "peer-dependency" but will not be automatically included in "dependencies" when you
-> install ... this allows you to decide if you want to treat this as a run-time dependency
-> or as a devDep.
-
 Then you can use in your Typescript/Javascript file like so:
 
 ```typescript
