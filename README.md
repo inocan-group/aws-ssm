@@ -25,7 +25,7 @@ const ssm = new SSM({
 });
 
 function doSomething(name: string) {
-  const param: ISsmParameter = ssm.get(name);
+  const param = await ssm.get(name);
   // ...
 }
 ```
