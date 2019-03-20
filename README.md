@@ -154,40 +154,38 @@ strategy from above you use):
 - `defaultType` - by default variables will be presumed to be of type "SecureString" but
   you change this to "String" if you prefer that as a default type
 
-## Examples
+## Serverless Example
 
-### Get a Secret
-
-```typescript
-const ssm = new SSM();
-const serviceAccount = await ssm.get("prod/firebase/SERVICE_ACCOUNT");
-```
-
-### Convert to ENV variables
+Since we build this library in large part to be used within AWS serverless architectures,
+we wanted to conclude with what we see as a good example of usage of `aws-ssm` in a AWS
+Lambda function. In this example we'll assume that the particular module depends on
+getting secrets from "firebase" and "logzio". In this case we might write the handler
+function like this:
 
 ```typescript
-// Example shows a common location for this API call ...
-// (aka., at the entry of the serverless function)
-export function handler(evt, context, callback) {
-  // converts all secrets in the given stage
-  await SSM.convertToEnv();
-  // if you haven't set AWS_STAGE, then ...
-  await SSM.convertToEnv("/prod");
-  // if you only want specific secrets ...
-  await SSM.convertToEnv(`/${process.env.AWS_STAGE}/firebase`);
+let _secrets: ISsmExportsOutput;
+const getSecrets = async () => {
+  if(!_secrets) {
+    const ssm = new SSM();
+    _secrets = await ssm.modules(["firebase", "logzio"]);
+  }
+
+  return _secrets;
+};
+
+const async handler(event, context, callback) {
+  const secrets = await getSecrets();
+  // ...
+  const db = await DB.connect( secrets.firebase.serviceAccount );
 }
 ```
 
-### Set a Secret
-
-```typescript
-const ssm = new SSM();
-const serviceAccount = await ssm.put("prod/firebase/SERVICE_ACCOUNT", value);
-```
-
-The above API surface is to give you a quick overview of how you might use/interact with
-this API but since this library is _typed_ you should always refer to the typings as the
-most recent documentation.
+In the above example we provide a compact way of specifying the modules we want secrets
+on. Assuming that the environment variables are set -- which you should always do anyway
+-- then `aws-ssm` will have no issues resolving all secrets. At the same time, there is a
+time cost in using SSM so we have wrapped the functionality in a way that ensures that if
+the AWS Lambda function is _reused_ (aka, a warm start) then the SSM calls will not be
+made after the first time.
 
 ## License
 

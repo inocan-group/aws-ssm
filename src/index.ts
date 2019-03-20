@@ -15,7 +15,7 @@ import {
   IAwsSsmVariable,
   ISsmPathParts,
   ISsmModuleOptions,
-  IExportsOutput
+  ISsmExportsOutput
 } from "./types";
 import { IDictionary, createError } from "common-types";
 import {
@@ -230,7 +230,7 @@ export default class SSM {
   public async modules(
     mods: string | string[],
     options: ISsmModuleOptions = {}
-  ): Promise<IExportsOutput> {
+  ): Promise<ISsmExportsOutput> {
     mods = Array.isArray(mods) ? mods : [mods];
     if (!process.env.AWS_STAGE) {
       const err = new Error(

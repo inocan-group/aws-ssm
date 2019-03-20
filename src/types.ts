@@ -33,7 +33,7 @@ export interface ISsmGetOptions {
   decrypt?: boolean;
 }
 
-export type IExportsOutput<T = string> = IExportsOutputVerbose<T> &
+export type ISsmExportsOutput<T = string> = IExportsOutputVerbose<T> &
   IExportsOutputRegular<T>;
 
 export interface IExportsOutputVerbose<T> {
