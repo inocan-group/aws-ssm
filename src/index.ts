@@ -10,9 +10,23 @@ import {
   SsmValue,
   ISsmConfig,
   SsmValueType,
-  ISsmGetResult
+  ISsmGetResult,
+  ISsmParameter,
+  IAwsSsmVariable,
+  ISsmPathParts,
+  ISsmModuleOptions,
+  ISsmExportsOutput
 } from "./types";
-import { coerceValueToString, findPriorDescription } from "./utils";
+import { IDictionary, createError } from "common-types";
+import {
+  coerceValueToString,
+  findPriorDescription,
+  getLatestVersion,
+  addModuleName,
+  getSpecificVersion
+} from "./utils";
+
+const DEFAULT_VERSION = 1;
 
 export default class SSM {
   private _credentials?: CredentialsOptions;
@@ -21,7 +35,7 @@ export default class SSM {
   private _region: string;
   private _defaultType: SsmValueType;
 
-  constructor(config: ISsmConfig) {
+  constructor(config: ISsmConfig = {}) {
     if (config.profile && typeof config.profile === "string") {
       const credentials = config.credentialsDirectory
         ? getAwsCredentials(config.profile, config.credentialsDirectory)
@@ -56,14 +70,15 @@ export default class SSM {
     };
   }
 
-  public async get(
-    Name: string,
-    options: ISsmGetOptions = {}
-  ): Promise<ISsmGetResult> {
+  public async get(Name: string, options: ISsmGetOptions = {}): Promise<ISsmGetResult> {
     return new Promise(async (resolve, reject) => {
       const request: AwsSSM.GetParameterRequest = {
-        Name
+        Name: buildPathFromNameComponents(parseForNameComponents(Name))
       };
+
+      if (options.decrypt) {
+        request.WithDecryption = true;
+      }
 
       this._ssm.getParameter(request, (err, data) => {
         if (err) {
@@ -77,9 +92,7 @@ export default class SSM {
           version: data.Parameter.Version,
           value: data.Parameter.Value,
           encrypted:
-            !options.decrypt && data.Parameter.Type === "SecureString"
-              ? true
-              : false,
+            !options.decrypt && data.Parameter.Type === "SecureString" ? true : false,
           lastUpdated: data.Parameter.LastModifiedDate
         };
 
@@ -98,7 +111,7 @@ export default class SSM {
       throw e;
     }
 
-    const varName = `${result.parts.app.toUpperCase()}_${result.parts.name.toUpperCase()}`;
+    const varName = `${result.parts.module.toUpperCase()}_${result.parts.name.toUpperCase()}`;
     process.env[varName] = String(result.value);
   }
 
@@ -117,6 +130,7 @@ export default class SSM {
     Value: SsmValue,
     options: ISsmSetOptions = {}
   ): Promise<number> {
+    const parts = parseForNameComponents(Name);
     return new Promise(async (resolve, reject) => {
       Value = coerceValueToString(Value);
       const Description = options.description
@@ -151,14 +165,123 @@ export default class SSM {
     });
   }
 
-  /** an alias for the PUT operation */
-  public set = this.put.bind(this);
+  /**
+   * list
+   *
+   * Lists the SSM Parameters available. If you wish to have a scoped/subset of parameters
+   * you should use optional "options" parameter. When you pass in a "string" this is
+   * the same as setting the "path" option but does remove your ability to set other options.
+   *
+   * @param pathOrOptions the hierarchical path position to start the recursive
+   * search for parameters, OR a configuration object
+   */
+  public async list(
+    pathOrOptions: string | ISsmListOptions = { path: "/" }
+  ): Promise<ISsmParameter[]> {
+    const o: ISsmListOptions =
+      typeof pathOrOptions === "string" ? { path: pathOrOptions } : pathOrOptions;
 
-  public list(options: ISsmListOptions = {}) {}
+    return new Promise((resolve, reject) => {
+      const request: AWS.SSM.GetParametersByPathRequest = {
+        Path: o.path || "/",
+        Recursive: true
+      };
+
+      if (o.decrypt) {
+        request.WithDecryption = true;
+      }
+
+      this._ssm.getParametersByPath(request, (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          const parameters: ISsmParameter[] = data.Parameters.map(i => ({
+            ...i,
+            encrypted: o.decrypt ? false : true
+          }));
+          resolve(parameters);
+        }
+      });
+    });
+  }
+
+  /**
+   * values
+   *
+   * An "alias" to the list() function except that values are decrypted
+   *
+   * @param path the hierarchical path position to start the recursive
+   * search for parameters
+   */
+  public async values(path: string = "/") {
+    return this.list({ path, decrypt: true });
+  }
+
+  /**
+   * modules
+   *
+   * returns the list of parameters in the current STAGE which are related to a given
+   * module/app. You can optionally specify a specific version.
+   *
+   * @param mods an array of modules/apps to look for
+   * @param options state the explicit app version to use or
+   * @return returns a hash who's keys are the module name; each module will be a hash who's keys are the key's property name
+   */
+  public async modules(
+    mods: string | string[],
+    options: ISsmModuleOptions = {}
+  ): Promise<ISsmExportsOutput> {
+    mods = Array.isArray(mods) ? mods : [mods];
+    if (!process.env.AWS_STAGE) {
+      const err = new Error(
+        `Can not use ssm.modules() without having set AWS_STAGE environment variable first!`
+      );
+      err.name = "NotAllowed";
+      throw err;
+    }
+
+    const params = await this.values("/" + process.env.AWS_STAGE);
+
+    const intermediate: IDictionary = {};
+    params.forEach(p => {
+      const parts = parseForNameComponents(p.Name);
+      const { version, module, name } = parts;
+
+      if (mods.indexOf(module) !== -1) {
+        if (!intermediate[module]) {
+          intermediate[module] = {};
+        }
+        if (!intermediate[module][version]) {
+          intermediate[module][version] = {};
+        }
+
+        intermediate[module][version][name] = p;
+      }
+    });
+
+    return mods.reduce((prev: IDictionary, mod: string) => {
+      return {
+        ...prev,
+        ...{
+          [mod]: options.version
+            ? addModuleName(
+                mod,
+                getSpecificVersion(intermediate[mod], options.version, options.verbose),
+                options.verbose
+              )
+            : addModuleName(
+                mod,
+                getLatestVersion(intermediate[mod], options.verbose),
+                options.verbose
+              )
+        }
+      };
+    }, {});
+  }
 
   public async delete(Name: string, options: ISsmRemoveOptions = {}) {
     const request: AwsSSM.DeleteParameterRequest = {
-      Name
+      Name: buildPathFromNameComponents(parseForNameComponents(Name))
     };
 
     return new Promise((resolve, reject) => {
@@ -178,11 +301,9 @@ export default class SSM {
             reject(err);
           }
 
-          resolve(data);
+          resolve();
         });
       } catch (e) {
-        console.log("Error", Object.keys(e));
-
         if (e.name === "ParameterNotFound") {
           const err = new Error(`The parameter "${Name}" could not be found!`);
           err.name = "ParameterNotFound";
@@ -194,8 +315,80 @@ export default class SSM {
       }
     });
   }
+}
 
-  public label(name: string, label: string, version?: number) {
-    // TODO
+export function parseForNameComponents(name: string) {
+  let stage = process.env.AWS_STAGE || process.env.NODE_ENV;
+  if (name.indexOf("/") === -1) {
+    // simple name, no components
+    if (!stage) {
+      notReady(name);
+    }
+    return {
+      stage,
+      version: DEFAULT_VERSION,
+      name
+    } as ISsmPathParts;
   }
+
+  // there are "parts" defined; let's identify them
+  const parts = name.replace(/^\//, "").split("/");
+  const numOfParts = parts.length;
+  if (numOfParts === 2) {
+    // assumed to be app/name format
+    if (!stage) {
+      notReady(name);
+    }
+    return {
+      stage,
+      version: DEFAULT_VERSION,
+      module: parts[0],
+      name: parts[1]
+    };
+  } else if (numOfParts === 3) {
+    checkVersionNumber(parts);
+    return {
+      stage: parts[0],
+      version: Number(parts[1]),
+      name: parts[2]
+    };
+  } else if (numOfParts === 4) {
+    checkVersionNumber(parts);
+    return {
+      stage: parts[0],
+      version: Number(parts[1]),
+      module: parts[2],
+      name: parts[3]
+    };
+  } else {
+    throw createError(
+      `aws-ssm/invalid-format`,
+      `The "name" in an SSM parameter can be a simple string (aka, FOO) or a shorthand notation (aka, firebase/FOO) or a fully qualified notation (aka., test/1/firebase/FOO) but the passed in name -- ${name} -- was not recognized as any of these formats.`
+    );
+  }
+}
+
+export function buildPathFromNameComponents(parts: ISsmPathParts) {
+  const base = `${parts.stage}/${String(parts.version)}`;
+  const remaining = parts.module ? `/${parts.module}/${parts.name}` : `/${parts.name}`;
+
+  return "/" + base + remaining;
+}
+
+function checkVersionNumber(parts: string[]) {
+  if (Number.isNaN(Number(parts[1]))) {
+    throw createError(
+      `aws-ssm/invalid-format`,
+      `You appear to be using a fully-qualified naming convension with the name "${parts.join(
+        "/"
+      )}" but the version specified [ ${parts[1]} ] is not a valid number!`
+    );
+  }
+}
+
+function notReady(name: string) {
+  throw createError(
+    "aws-ssm/not-ready",
+    `You must set an environment stage before using the SSM api. To do this set either AWS_STAGE or NODE_ENV. Failed to meet this requirement when setting "${name}".`
+  );
 }

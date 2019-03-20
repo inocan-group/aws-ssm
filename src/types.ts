@@ -1,4 +1,5 @@
 import { CredentialsOptions } from "aws-sdk/lib/credentials";
+import { datetime, Omit } from "common-types";
 
 export type SsmValue = string | string[] | number | boolean | object;
 /**
@@ -32,9 +33,45 @@ export interface ISsmGetOptions {
   decrypt?: boolean;
 }
 
+export type ISsmExportsOutput<T = string> = IExportsOutputVerbose<T> &
+  IExportsOutputRegular<T>;
+
+export interface IExportsOutputVerbose<T> {
+  [module: string]: {
+    [variable: string]: ISsmParameter<T>;
+  };
+}
+
+export interface IExportsOutputRegular<T> {
+  [module: string]: {
+    [variable: string]: T;
+  };
+}
+
+export interface ISsmModuleOptions {
+  /**
+   * by default modules the latest version for the given module
+   * name; but with this option you can freeze versions
+   * to a specific version
+   */
+  version?: number;
+  /**
+   * by default the leaf nodes in the hash will contain just
+   * the decrypted value (where the key is the NAME). If you
+   * want all the meta properties along with the value you
+   * can set verbose to TRUE.
+   */
+  verbose?: boolean;
+}
+
 export interface ISsmPathParts {
+  /** the AWS_STAGE this variable is intended for */
   stage: string;
-  app: string;
+  /** the version number of the variable; by default set to 1 */
+  version: number;
+  /** the application/module/context in which the variable name is set under */
+  module?: string;
+  /** the name of the variable (e.g., SECRET_KEY, SERVICE_ACCT, etc.) */
   name: string;
 }
 
@@ -72,6 +109,47 @@ export interface ISsmSetOptions {
   encryptionKey?: string;
 }
 
-export interface ISsmListOptions {}
+export interface ISsmListOptions {
+  /** restrict list to only those parameters at a particular path */
+  path?: string;
+  /** restrict list to only those parameters which have the given text in them */
+  contains?: string;
+  /** whether the values return should be decrypted; default is false */
+  decrypt?: boolean;
+}
 
 export interface ISsmRemoveOptions {}
+
+export interface IValueOptions {
+  /** whether the values return should be decrypted; default is true */
+  decrypt?: boolean;
+}
+
+export interface ISsmParameter<T = string> extends Omit<AWS.SSM.Parameter, "Value"> {
+  Value?: T;
+  encrypted: boolean;
+  module?: string;
+  variable?: string;
+}
+
+export interface IAwsSsmVariable {
+  Name: string;
+  Type: SsmValueType;
+  Value: string;
+  Version: number;
+  LastModifiedDate: datetime;
+  ARN: string;
+  encrypted: boolean;
+  module: string;
+}
+// TODO: not used currently
+export interface ISsmModule {
+  name: string;
+  type: SsmValueType;
+  value: string;
+  version: number;
+  lastModifiedDate: datetime;
+  arn: string;
+  encrypted: boolean;
+  module: string;
+}

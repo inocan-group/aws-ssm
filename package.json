@@ -1,6 +1,6 @@
 {
   "name": "aws-ssm",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "aws-ssm",
   "license": "MIT",
   "repository": "https://github.com/inocan-group/aws-ssm",
@@ -15,8 +15,7 @@
     "dist"
   ],
   "main": "lib/index.js",
-  "module": "dist/aws-ssm.es.js",
-  "browser": "dist/aws-ssm.min.js",
+  "module": "dist/index.mjs",
   "typings": "lib/index.d.ts",
   "scripts": {
     "clean": "rimraf lib",
@@ -55,7 +54,7 @@
     "@types/rimraf": "^2.0.2",
     "async-shelljs": "^0.1.2",
     "aws-sdk": "^2.387.0",
-    "bili": "^3.4.2",
+    "bili": "^4.7.0",
     "chai": "^4.2.0",
     "chance": "^1.0.18",
     "coveralls": "^3.0.2",
@@ -68,20 +67,20 @@
     "nyc": "^13.1.0",
     "prettier": "^1.15.3",
     "rimraf": "^2.6.3",
+    "rollup-plugin-typescript2": "^0.20.1",
     "simple-git": "^1.107.0",
     "test-console": "^1.1.0",
     "ts-node": "^7.0.1",
-    "tslint": "^5.12.1",
-    "tslint-config-prettier": "^1.17.0",
-    "typescript": "^3.2.2"
+    "tslint": "^5.14.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.3.3"
   },
-  "peerDependencies": {
-    "aws-sdk": "^2.387.0"
-  },
+  "peerDependencies": {},
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=8.0.0"
   },
   "dependencies": {
-    "common-types": "^1.9.4"
+    "aws-sdk": "^2.424.0",
+    "common-types": "^1.9.7"
   }
 }

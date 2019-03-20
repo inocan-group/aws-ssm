@@ -1,12 +1,11 @@
 // tslint:disable:no-implicit-dependencies
 import chalk from "chalk";
-import { exec } from "shelljs";
-import * as rm from "rimraf";
-import * as process from "process";
+import { exec, rm } from "shelljs";
 import "../test/testing/test-console";
 import { stdout, stderr } from "test-console";
 import { transpileJavascript, clearTranspiledJS } from "./lib/js";
 import { asyncExec } from "async-shelljs";
+import rimraf = require("rimraf");
 
 function prepOutput(output: string) {
   return output
@@ -41,9 +40,17 @@ async function getScope(): Promise<string> {
 }
 
 (async () => {
-  const scope: string = await getScope();
-  await clearTranspiledJS();
-  await transpileJavascript({ scope });
+  // const scope: string = await getScope();
+  // await clearTranspiledJS();
+  // await transpileJavascript({ scope });
   // await transpileJavascript({ scope, configFile: "tsconfig-esm.json" });
-  await asyncExec("bili lib/index.js --format umd,umd-min,es");
+  console.log("- clearing dist folder");
+  rm("-rf", "./dist");
+  console.log(`- using ${chalk.bold.yellow("bili")} to transpile to CJS and ES formats`);
+  try {
+    await asyncExec("bili src/index.ts --format cjs,es");
+    console.log(chalk.green.bold("- build is complete 🚀\n"));
+  } catch (e) {
+    console.log(chalk.red.bold("- problems in build: ") + chalk.grey(e.message));
+  }
 })();

@@ -1,6 +1,12 @@
 // tslint:disable:no-implicit-dependencies
 import { getAwsCredentials } from "../src/getAwsCredentials";
-import { coerceValueToString } from "../src/utils";
+import {
+  coerceValueToString,
+  convertDictionaryToArray,
+  addModuleName,
+  getSpecificVersion
+} from "../src/utils";
+import { firstKey, firstRecord } from "./testing/helpers";
 import * as chai from "chai";
 const expect = chai.expect;
 
@@ -39,5 +45,54 @@ describe("coerceValueToString() →", () => {
     expect(response).to.equal("__TRUE__");
     const response2 = coerceValueToString(false);
     expect(response2).to.equal("__FALSE__");
+  });
+});
+
+const data = {
+  FOO: {
+    Name: "/test/firebase/FOO",
+    Value: "abc",
+    encrypted: false
+  },
+  BAR: {
+    Name: "/test/firebase/BAR",
+    Value: "cdf",
+    encrypted: false
+  }
+};
+describe("convertDictionaryToArray", () => {
+  it("dictionary of parameters converted to array", async () => {
+    const result = convertDictionaryToArray(data);
+    expect(result).to.be.an("array");
+    expect(result).to.have.length(2);
+    expect(result[0]).to.haveOwnProperty("variable");
+    expect(result[0]).to.haveOwnProperty("Name");
+    expect(result[0]).to.haveOwnProperty("Value");
+  });
+});
+
+describe("addModuleName", () => {
+  it("adding module name puts module property into each definition for each property", async () => {
+    const result = addModuleName("firebase", data, true);
+
+    expect(Object.keys(result)).to.have.length(2);
+    expect(firstRecord(result))
+      .to.have.property("module")
+      .and.equal("firebase")
+      .and.be.a("string");
+  });
+});
+
+describe("getSpecificVersion", () => {
+  const testData = {
+    1: data,
+    2: { ...data, FOO: { ...data.FOO, Value: "version 2" } }
+  };
+
+  it("returns correctly when given valid version", async () => {
+    let result = getSpecificVersion(testData, 1);
+    expect(result)
+      .to.be.an("object")
+      .and.have.property("FOO");
   });
 });
