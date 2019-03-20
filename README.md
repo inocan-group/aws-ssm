@@ -4,8 +4,6 @@
 
 Helps to provide a simple interaction with **AWS's**
 [SSM Parameter Store](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/SSM.html#getParameter-property).
-This is intended to be used by CLI scripts (aka, dumps pretty stdout) and programatic
-(aka, returns structured data).
 
 ## Getting Started
 
@@ -13,7 +11,7 @@ First install:
 
 ```sh
 # npm
-npm install --save-dev aws-ssm
+npm install aws-ssm
 # yarn
 yarn add aws-ssm
 ```
@@ -39,21 +37,28 @@ function doSomething(name: string) {
 
 ## API Surface
 
-The following functions are available from **aws-ssm**:
+The following basic functions are available from **aws-ssm**:
 
 ```typescript
+// get a value from SSM
 function get(name: string, options?: ISsmGetOptions);
-function set(name: string, value: SsmType, options?: ISsmSetOptions);
+// add a value to SSM; use { overwrite: true } in options if you updating
+function put(name: string, value: SsmType, options?: ISsmSetOptions);
+// list all or a subset of SSM Parameters
 function list(options);
+// the same as list but values are decrypted
+function values(path, options);
+// remove a SSM module
 function remove(name, options);
+// get a hash of SSM values (decrypted) by module name
+function modules(moduleNames[], options)
 ```
 
 ## Opinionated Naming
 
 With SSM you're able to use any naming you choose for your variables and that includes
 full "paths" (aka, strings with the "/" character deliminiting the name). With `aws-ssm`
-you are also entitled to use whatever naming convention you choose but by default the
-following will be assumed:
+we have established a naming convention which follows the following structure:
 
 > / [ `stage` ] / [ `version` ] / [ `system` ] / [ `NAME` ]
 
@@ -62,11 +67,11 @@ _production_ service account as:
 
 ```typescript
 const ssm = new SSM(/** config */);
-await ssm.set("/prod/1/firebase/SERVICE_ACCOUNT", "...");
+await ssm.put("/prod/1/firebase/SERVICE_ACCOUNT", "...");
 ```
 
-Now you don't need to use this convention but by doing so you get some convenience
-benefits:
+Because of convention, we are afforded a lot of convenience assuming we follow some basic
+environment variable conventions:
 
 ```typescript
 const ssm = new SSM(/** config */);
@@ -74,14 +79,8 @@ const serviceAccount = await ssm.get("firebase/SERVICE_ACCOUNT");
 ```
 
 The above will resolve the _stage_ for you so long as the `AWS_STAGE` environment variable
-is set and the version will be set to "1" unless the `AWS_VERSION` is set. Not a big win
-but who doesn't love a shortcut.
-
-> Note, you _can_ include the stage and version yourself if you want to but in general
-> setting these as environment variables is probably a better solution in most cases
-
-If you don't want to use the opinionated naming then you can add `{ naming: false }` as
-part of the config.
+is set (or as a fallback the `NODE_ENV` variable) and the version will be set to "1"
+unless the `AWS_VERSION` is set.
 
 ## Config
 
@@ -102,9 +101,10 @@ const ssm = new SSM({ profile: "myProject" });
 
 ### Deploy Time Serverless Config
 
-When your serverless functions run you need to ensure they have permission to execute SSM
-actions. Assuming you are using the [Serverless Framework](https://serverless.com), you
-would provide permissions something like the following:
+When your using this library with serverless functions you will need to ensure they have
+permission to execute SSM actions. Assuming you are using the
+[Serverless Framework](https://serverless.com), you would provide permissions something
+like the following:
 
 ```typescript
 const ssmPermissions: IServerlessIAMRole = {
@@ -115,17 +115,17 @@ const ssmPermissions: IServerlessIAMRole = {
 ```
 
 > **Note:** we're suckers for TS and typing but you'll probably need to convert the above
-> to YAML for your purposes (unless of course you're using the
-> [`generator-typescript-microservice`](https://github.com/lifegadget/generator-typescript-microservice)
-> yeoman template).
+> to YAML for your purposes; unless of course you're using the
+> [`typescript-microservice`](https://github.com/lifegadget/generator-typescript-microservice)
+> yeoman template.
 
 You'll notice that we allowed access to all SSM paths for the given region and account but
 actually probably a smarter strategy would be to limit access to the _stage_ you're in:
 
 > Resource: [ `'arn:aws:ssm:${REGION}:${ACCOUNT}:parameter-${STAGE}*'` ]
 
-Final note, if it wasn't clear. When you give permissions at deploy time, your code
-executed at run time needs zero config because it by default has permissions:
+Final note, if it wasn't clear. When you give permissions at deploy time, your serverless
+code executed at run time needs zero config because it by default has permissions:
 
 ```typescript
 const ssm = new SSM();
@@ -182,7 +182,7 @@ export function handler(evt, context, callback) {
 
 ```typescript
 const ssm = new SSM();
-const serviceAccount = await ssm.set("prod/firebase/SERVICE_ACCOUNT");
+const serviceAccount = await ssm.put("prod/firebase/SERVICE_ACCOUNT", value);
 ```
 
 The above API surface is to give you a quick overview of how you might use/interact with

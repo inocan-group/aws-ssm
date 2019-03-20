@@ -1,12 +1,17 @@
 {
-    "typescript.tsdk": "node_modules/typescript/lib/",
-    "eslint.enable": false,
-    "tslint.enable": true,
-    "editor.formatOnSave": true,
-    "files.exclude": {
-        "**/.git": true,
-        "**/.DS_Store": true,
-        "test/**/*.js": {"when": "$(basename).ts"},
-        "lib/*": true
-    }
+  "typescript.tsdk": "node_modules/typescript/lib/",
+  "tslint.exclude": "true",
+  "editor.formatOnSave": true,
+  "files.exclude": {
+    "**/.git": true,
+    "**/.DS_Store": true,
+    "test/**/*.js": { "when": "$(basename).ts" },
+    "lib/*": true
+  },
+  "workbench.colorCustomizations": {
+    "titleBar.activeForeground": "#afffaf",
+    "titleBar.inactiveForeground": "#ffffffcc",
+    "titleBar.activeBackground": "#628148",
+    "titleBar.inactiveBackground": "#3b420f"
+  }
 }

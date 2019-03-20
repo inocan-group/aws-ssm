@@ -66,8 +66,8 @@ async function mochaTests(stg: string, searchTerms: string[]) {
   );
 
   try {
-    await lintSource();
-    console.log(chalk.green(`- 👍  Linting found no problems  `));
+    // await lintSource();
+    // console.log(chalk.green(`- 👍  Linting found no problems  `));
   } catch (e) {
     if (!options.has("--ignoreLint")) {
       console.log(
