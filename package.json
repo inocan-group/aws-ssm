@@ -1,6 +1,6 @@
 {
   "name": "aws-ssm",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "aws-ssm",
   "license": "MIT",
   "repository": "https://github.com/inocan-group/aws-ssm",
@@ -14,9 +14,9 @@
     "lib",
     "dist"
   ],
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "module": "dist/index.mjs",
-  "typings": "lib/index.d.ts",
+  "typings": "dist/index.d.ts",
   "scripts": {
     "clean": "rimraf lib",
     "lint": "tslint --force --format verbose \"src/**/*.ts\"",
