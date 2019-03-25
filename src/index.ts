@@ -12,7 +12,6 @@ import {
   SsmValueType,
   ISsmGetResult,
   ISsmParameter,
-  IAwsSsmVariable,
   ISsmPathParts,
   ISsmModuleOptions,
   ISsmExportsOutput
@@ -28,7 +27,9 @@ import {
 
 const DEFAULT_VERSION = 1;
 
-export default class SSM {
+export * from "./types";
+
+export class SSM {
   private _credentials?: CredentialsOptions;
   private _ssm: AwsSSM;
   private _cli: boolean = false;
