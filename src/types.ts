@@ -105,7 +105,12 @@ export interface ISsmSetOptions {
   cli?: boolean;
   /** should the variable be stored with encryption (aka., as a "SecureString") */
   encrypt?: boolean;
-  /** you can state the key to use; without the key it will use the  */
+  /**
+   * you _can_ explicitly state a key to use in encryption; leaving this
+   * undefined will use the default AWS CMK key.
+   *
+   * > More: https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#data-keys
+   */
   encryptionKey?: string;
 }
 

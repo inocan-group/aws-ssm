@@ -1,6 +1,6 @@
 // tslint:disable:no-implicit-dependencies
 import chalk from "chalk";
-import { exec, rm } from "shelljs";
+import { exec, rm, ls } from "shelljs";
 import "../test/testing/test-console";
 import { stdout, stderr } from "test-console";
 import { transpileJavascript, clearTranspiledJS } from "./lib/js";
@@ -49,7 +49,12 @@ async function getScope(): Promise<string> {
   console.log(`- using ${chalk.bold.yellow("bili")} to transpile to CJS and ES formats`);
   try {
     await asyncExec("bili src/index.ts --format cjs,es");
-    console.log(chalk.green.bold("- build is complete 🚀\n"));
+    console.log(
+      `\n- transpilation completed; the ${chalk.bold.yellow("./dist")} folder now has:\n`
+    );
+
+    await asyncExec("ls -l ./dist");
+    console.log(chalk.green.bold("\n- build is complete 🚀\n"));
   } catch (e) {
     console.log(chalk.red.bold("- problems in build: ") + chalk.grey(e.message));
   }
