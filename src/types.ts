@@ -130,7 +130,8 @@ export interface IValueOptions {
   decrypt?: boolean;
 }
 
-export interface ISsmParameter<T = string> extends Omit<AWS.SSM.Parameter, "Value"> {
+export type SsmParameter = AWS.SSM.Parameter;
+export interface ISsmParameter<T = string> extends Omit<SsmParameter, "Value"> {
   Value?: T;
   encrypted: boolean;
   module?: string;
