@@ -1,5 +1,5 @@
 // tslint:disable:no-implicit-dependencies
-import SSM from "../src/index";
+import { SSM } from "../src/index";
 import * as chai from "chai";
 const expect = chai.expect;
 
@@ -141,7 +141,7 @@ describe("simple lifecycle test (put, get, remove) and fully qualified path ", (
   });
 });
 
-describe("more complex lifecycle tests (lists, toEnv, remove) → ", () => {
+describe.only("more complex lifecycle tests (lists, toEnv, remove) → ", () => {
   const ssm = new SSM({ profile: "ssm" });
   const PATH1 = "/test/2/firebase/KEY";
   const PATH2 = "/test/2/firebase/SECRET";
@@ -174,6 +174,8 @@ describe("more complex lifecycle tests (lists, toEnv, remove) → ", () => {
 
   it("LIST with no parameters returns multiple results and results have right structure", async () => {
     const params = await ssm.list();
+    console.log(JSON.stringify(params, null, 2));
+
     expect(params).to.be.an("array");
 
     const keys = params.map(p => p.Name);
@@ -191,7 +193,6 @@ describe("more complex lifecycle tests (lists, toEnv, remove) → ", () => {
 
   it("LIST with string 'path' returns all parameters that originate with that path", async () => {
     let params = await ssm.list("/test");
-    console.log(params);
 
     expect(params).to.have.length(2);
     params = await ssm.list("/stage");

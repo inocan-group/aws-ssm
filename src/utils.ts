@@ -1,6 +1,5 @@
 import { SsmValue, SsmValueType, ISsmParameter } from "./types";
 import { IDictionary } from "common-types";
-import { stringType } from "aws-sdk/clients/iam";
 
 export function coerceValueToString(value: SsmValue): string {
   if (typeof value === "object") {

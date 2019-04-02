@@ -1,4 +1,3 @@
-// tslint:disable:no-implicit-dependencies
 import { IDictionary, IServerlessConfig } from "common-types";
 import chalk from "chalk";
 
@@ -27,7 +26,7 @@ export const parseArgv = (...possibleFlags: string[]) => (
 
   const options = optionKeyIndexes.reduce(
     (acc, idx: number) => {
-      acc[commandLine[idx].replace(/\-/g, "")] = possibleParams.includes(commandLine[idx])
+      acc[commandLine[idx].replace(/-/g, "")] = possibleParams.includes(commandLine[idx])
         ? commandLine[idx + 1]
         : true;
       return acc;
@@ -37,13 +36,28 @@ export const parseArgv = (...possibleFlags: string[]) => (
   return { params, options };
 };
 
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 import { readFileSync } from "fs";
 
+/**
+ * gets the serverless configuration from the `serverless.yml` file
+ * in the root of the repository.
+ */
 export function getServerlessConfig() {
-  const config: IServerlessConfig = yaml.safeLoad(
-    readFileSync(`${process.env.PWD}/serverless.yml`, { encoding: "utf-8" })
-  );
+  let config: IServerlessConfig;
+  try {
+    config = yaml.safeLoad(
+      readFileSync(`${process.env.PWD}/serverless.yml`, { encoding: "utf-8" })
+    );
+  } catch (e) {
+    console.log(
+      `${chalk.red("There was a problem reading serverless.yml: ")}${e.message}`
+    );
+    console.log("- using empty config object");
+    config = {
+      provider: {}
+    } as any;
+  }
 
   return config;
 }

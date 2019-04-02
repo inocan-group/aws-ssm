@@ -16,6 +16,8 @@ function after(position: number, things: any[], onUndefined?: () => void) {
   }
 }
 
+export type IAwsCredentials = CredentialsOptions & { region?: string };
+
 /**
  * Uses a users "credentials" file to lookup region, access_key, access_secret
  *
@@ -44,10 +46,7 @@ export function getAwsCredentials(profile: string, directory?: string) {
       credentialsObj.accessKeyId = i.replace(/.*aws_access_key_id\s*=\s*/, "");
     }
     if (i.includes("aws_secret_access_key")) {
-      credentialsObj.secretAccessKey = i.replace(
-        /.*aws_secret_access_key\s*=\s*/,
-        ""
-      );
+      credentialsObj.secretAccessKey = i.replace(/.*aws_secret_access_key\s*=\s*/, "");
     }
     if (i.includes("region")) {
       credentialsObj.region = i.replace(/.*region\s*=\s*/, "");
