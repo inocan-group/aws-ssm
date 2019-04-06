@@ -1,5 +1,5 @@
 // tslint:disable:no-implicit-dependencies
-import SSM from "../src/index";
+import { SSM } from "../src/index";
 import * as chai from "chai";
 const expect = chai.expect;
 
@@ -174,6 +174,8 @@ describe("more complex lifecycle tests (lists, toEnv, remove) → ", () => {
 
   it("LIST with no parameters returns multiple results and results have right structure", async () => {
     const params = await ssm.list();
+    console.log(JSON.stringify(params, null, 2));
+
     expect(params).to.be.an("array");
 
     const keys = params.map(p => p.Name);
@@ -191,7 +193,6 @@ describe("more complex lifecycle tests (lists, toEnv, remove) → ", () => {
 
   it("LIST with string 'path' returns all parameters that originate with that path", async () => {
     let params = await ssm.list("/test");
-    console.log(params);
 
     expect(params).to.have.length(2);
     params = await ssm.list("/stage");

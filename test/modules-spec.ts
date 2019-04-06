@@ -1,4 +1,4 @@
-import SSM from "../src";
+import { SSM } from "../src";
 import * as chai from "chai";
 const expect = chai.expect;
 
