@@ -141,7 +141,7 @@ describe("simple lifecycle test (put, get, remove) and fully qualified path ", (
   });
 });
 
-describe.only("more complex lifecycle tests (lists, toEnv, remove) → ", () => {
+describe("more complex lifecycle tests (lists, toEnv, remove) → ", () => {
   const ssm = new SSM({ profile: "ssm" });
   const PATH1 = "/test/2/firebase/KEY";
   const PATH2 = "/test/2/firebase/SECRET";
