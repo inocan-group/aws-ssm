@@ -62,6 +62,16 @@ export class SSM {
     this._ssm = new AwsSSM(awsSsmConfig);
   }
 
+  /**
+   * Instantiates SSM using the default configuration and calls the `module` instance method.
+   */
+  public static async modules(
+    mods: string | string[],
+    options: ISsmModuleOptions = {}
+  ): Promise<ISsmExportsOutput> {
+    return new SSM().modules(mods, options);
+  }
+
   public get configuration() {
     return {
       credentials: this._credentials,
@@ -71,7 +81,10 @@ export class SSM {
     };
   }
 
-  public async get(Name: string, options: ISsmGetOptions = {}): Promise<ISsmGetResult> {
+  public async get(
+    Name: string,
+    options: ISsmGetOptions = {}
+  ): Promise<ISsmGetResult> {
     return new Promise(async (resolve, reject) => {
       const request: AwsSSM.GetParameterRequest = {
         Name: buildPathFromNameComponents(parseForNameComponents(Name))
@@ -93,7 +106,9 @@ export class SSM {
           version: data.Parameter.Version,
           value: data.Parameter.Value,
           encrypted:
-            !options.decrypt && data.Parameter.Type === "SecureString" ? true : false,
+            !options.decrypt && data.Parameter.Type === "SecureString"
+              ? true
+              : false,
           lastUpdated: data.Parameter.LastModifiedDate
         };
 
@@ -180,7 +195,9 @@ export class SSM {
     pathOrOptions: string | ISsmListOptions = { path: "/" }
   ): Promise<ISsmParameter[]> {
     const o: ISsmListOptions =
-      typeof pathOrOptions === "string" ? { path: pathOrOptions } : pathOrOptions;
+      typeof pathOrOptions === "string"
+        ? { path: pathOrOptions }
+        : pathOrOptions;
 
     return new Promise((resolve, reject) => {
       const request: AWS.SSM.GetParametersByPathRequest = {
@@ -267,7 +284,11 @@ export class SSM {
           [mod]: options.version
             ? addModuleName(
                 mod,
-                getSpecificVersion(intermediate[mod], options.version, options.verbose),
+                getSpecificVersion(
+                  intermediate[mod],
+                  options.version,
+                  options.verbose
+                ),
                 options.verbose
               )
             : addModuleName(
@@ -371,7 +392,9 @@ export function parseForNameComponents(name: string) {
 
 export function buildPathFromNameComponents(parts: ISsmPathParts) {
   const base = `${parts.stage}/${String(parts.version)}`;
-  const remaining = parts.module ? `/${parts.module}/${parts.name}` : `/${parts.name}`;
+  const remaining = parts.module
+    ? `/${parts.module}/${parts.name}`
+    : `/${parts.name}`;
 
   return "/" + base + remaining;
 }
