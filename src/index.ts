@@ -67,9 +67,11 @@ export class SSM {
    */
   public static async modules(
     mods: string | string[],
-    options: ISsmModuleOptions = {}
+    options: ISsmModuleOptions & { config?: ISsmConfig } = {}
   ): Promise<ISsmExportsOutput> {
-    return new SSM().modules(mods, options);
+    return options.config
+      ? new SSM(options.config).modules(mods, options)
+      : new SSM().modules(mods, options);
   }
 
   public get configuration() {
