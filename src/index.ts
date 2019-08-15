@@ -25,6 +25,8 @@ import {
   getSpecificVersion
 } from "./utils";
 
+export type GetParametersByPathRequest = import("aws-sdk").SSM.GetParametersByPathRequest;
+
 const DEFAULT_VERSION = 1;
 
 export * from "./types";
@@ -67,9 +69,11 @@ export class SSM {
    */
   public static async modules(
     mods: string | string[],
-    options: ISsmModuleOptions = {}
+    options: ISsmModuleOptions & { config?: ISsmConfig } = {}
   ): Promise<ISsmExportsOutput> {
-    return new SSM().modules(mods, options);
+    return options.config
+      ? new SSM(options.config).modules(mods, options)
+      : new SSM().modules(mods, options);
   }
 
   public get configuration() {
@@ -200,7 +204,7 @@ export class SSM {
         : pathOrOptions;
 
     return new Promise((resolve, reject) => {
-      const request: AWS.SSM.GetParametersByPathRequest = {
+      const request: GetParametersByPathRequest = {
         Path: o.path || "/",
         Recursive: true
       };
