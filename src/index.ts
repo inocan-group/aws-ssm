@@ -24,7 +24,6 @@ import {
   addModuleName,
   getSpecificVersion
 } from "./utils";
-import { promisify } from "util";
 import { SsmError } from "./SsmError";
 
 export type GetParametersByPathRequest = import("aws-sdk").SSM.GetParametersByPathRequest;
@@ -214,8 +213,10 @@ export class SSM {
    * but the data that is returned includes the last person/user to touch the value
    * and _does not_ include the value of the secret.
    */
-  public async describeParameters() {
-    const describeParameters = this._ssm.describeParameters().promise();
+  public async describeParameters(
+    options: { MaxResults?: number } = { MaxResults: 100 }
+  ) {
+    const describeParameters = this._ssm.describeParameters(options).promise();
     const results = await describeParameters;
     return results.Parameters;
   }
