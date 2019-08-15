@@ -35,10 +35,11 @@ export default function help(
     });
   }
 
+  // TODO: fix the use of "any"
   sections.push({
     header: "Options",
     optionList
-  });
+  } as any);
 
   console.log(commandLineUsage(sections));
   process.exit();

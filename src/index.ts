@@ -24,6 +24,8 @@ import {
   addModuleName,
   getSpecificVersion
 } from "./utils";
+import { promisify } from "util";
+import { SsmError } from "./SsmError";
 
 export type GetParametersByPathRequest = import("aws-sdk").SSM.GetParametersByPathRequest;
 
@@ -89,36 +91,30 @@ export class SSM {
     Name: string,
     options: ISsmGetOptions = {}
   ): Promise<ISsmGetResult> {
-    return new Promise(async (resolve, reject) => {
-      const request: AwsSSM.GetParameterRequest = {
-        Name: buildPathFromNameComponents(parseForNameComponents(Name))
-      };
+    const request: AwsSSM.GetParameterRequest = {
+      Name: buildPathFromNameComponents(parseForNameComponents(Name))
+    };
 
-      if (options.decrypt) {
-        request.WithDecryption = true;
-      }
+    if (options.decrypt) {
+      request.WithDecryption = true;
+    }
 
-      this._ssm.getParameter(request, (err, data) => {
-        if (err) {
-          reject(err);
-        }
+    const data = await this._ssm.getParameter(request).promise();
 
-        const result: ISsmGetResult = {
-          path: data.Parameter.Name,
-          type: data.Parameter.Type as SsmValueType,
-          arn: data.Parameter.ARN,
-          version: data.Parameter.Version,
-          value: data.Parameter.Value,
-          encrypted:
-            !options.decrypt && data.Parameter.Type === "SecureString"
-              ? true
-              : false,
-          lastUpdated: data.Parameter.LastModifiedDate
-        };
+    const result: ISsmGetResult = {
+      path: data.Parameter.Name,
+      type: data.Parameter.Type as SsmValueType,
+      arn: data.Parameter.ARN,
+      version: data.Parameter.Version,
+      value: data.Parameter.Value,
+      encrypted:
+        !options.decrypt && data.Parameter.Type === "SecureString"
+          ? true
+          : false,
+      lastUpdated: data.Parameter.LastModifiedDate
+    };
 
-        resolve(result);
-      });
-    });
+    return result;
   }
 
   public async convertToEnv(Name: string, options: ISsmGetOptions = {}) {
@@ -151,38 +147,30 @@ export class SSM {
     options: ISsmSetOptions = {}
   ): Promise<number> {
     const parts = parseForNameComponents(Name);
-    return new Promise(async (resolve, reject) => {
-      Value = coerceValueToString(Value);
-      const Description = options.description
-        ? options.description
-        : Boolean(options.override)
-        ? await findPriorDescription(Name)
-        : "";
-      const request: AwsSSM.PutParameterRequest = {
-        Name,
-        Value,
-        Description,
-        Overwrite: options.override || false,
-        Type:
-          options.encrypt !== undefined
-            ? options.encrypt
-              ? "SecureString"
-              : "String"
-            : this._defaultType
-      };
-      if (options.encryptionKey) {
-        request.KeyId = options.encryptionKey;
-      }
+    Value = coerceValueToString(Value);
+    const Description = options.description
+      ? options.description
+      : Boolean(options.override)
+      ? await findPriorDescription(Name)
+      : "";
+    const request: AwsSSM.PutParameterRequest = {
+      Name,
+      Value,
+      Description,
+      Overwrite: options.override || false,
+      Type:
+        options.encrypt !== undefined
+          ? options.encrypt
+            ? "SecureString"
+            : "String"
+          : this._defaultType
+    };
+    if (options.encryptionKey) {
+      request.KeyId = options.encryptionKey;
+    }
 
-      this._ssm.putParameter(request, (err, data) => {
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        resolve(data.Version);
-      });
-    });
+    const result = await this._ssm.putParameter(request).promise();
+    return result.Version;
   }
 
   /**
@@ -203,28 +191,33 @@ export class SSM {
         ? { path: pathOrOptions }
         : pathOrOptions;
 
-    return new Promise((resolve, reject) => {
-      const request: GetParametersByPathRequest = {
-        Path: o.path || "/",
-        Recursive: true
-      };
+    const request: GetParametersByPathRequest = {
+      Path: o.path || "/",
+      Recursive: true
+    };
 
-      if (o.decrypt) {
-        request.WithDecryption = true;
-      }
+    if (o.decrypt) {
+      request.WithDecryption = true;
+    }
 
-      this._ssm.getParametersByPath(request, (err, data) => {
-        if (err) {
-          reject(err);
-        } else {
-          const parameters: ISsmParameter[] = data.Parameters.map(i => ({
-            ...i,
-            encrypted: o.decrypt ? false : true
-          }));
-          resolve(parameters);
-        }
-      });
-    });
+    const data = await this._ssm.getParametersByPath(request).promise();
+    const parameters: ISsmParameter[] = data.Parameters.map(i => ({
+      ...i,
+      encrypted: o.decrypt ? false : true
+    }));
+
+    return parameters;
+  }
+
+  /**
+   * Produces a list of SSM parameters; this is very similar to the `list()` method
+   * but the data that is returned includes the last person/user to touch the value
+   * and _does not_ include the value of the secret.
+   */
+  public async describeParameters() {
+    const describeParameters = this._ssm.describeParameters().promise();
+    const results = await describeParameters;
+    return results.Parameters;
   }
 
   /**
@@ -310,36 +303,18 @@ export class SSM {
       Name: buildPathFromNameComponents(parseForNameComponents(Name))
     };
 
-    return new Promise((resolve, reject) => {
-      try {
-        this._ssm.deleteParameter(request, (err, data) => {
-          if (err) {
-            if (err.name === "ParameterNotFound") {
-              const e = new Error(
-                `The parameter "${Name}" could not be found (and therefore could not be deleted)!`
-              );
-              e.name = "ParameterNotFound";
-              e.stack = err.stack;
-              reject(e);
-              return;
-            } else {
-            }
-            reject(err);
-          }
-
-          resolve();
-        });
-      } catch (e) {
-        if (e.name === "ParameterNotFound") {
-          const err = new Error(`The parameter "${Name}" could not be found!`);
-          err.name = "ParameterNotFound";
-          err.stack = e.stack;
-          throw err;
-        } else {
-          throw e;
-        }
+    try {
+      await this._ssm.deleteParameter(request).promise();
+    } catch (e) {
+      if (e.name === "ParameterNotFound") {
+        const err = new Error(`The parameter "${Name}" could not be found!`);
+        err.name = "ParameterNotFound";
+        err.stack = e.stack;
+        throw err;
+      } else {
+        throw e;
       }
-    });
+    }
   }
 }
 
@@ -415,7 +390,7 @@ function checkVersionNumber(parts: string[]) {
 }
 
 function notReady(name: string) {
-  throw createError(
+  throw new SsmError(
     "aws-ssm/not-ready",
     `You must set an environment stage before using the SSM api. To do this set either AWS_STAGE or NODE_ENV. Failed to meet this requirement when setting "${name}".`
   );
