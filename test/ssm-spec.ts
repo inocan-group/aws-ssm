@@ -95,6 +95,14 @@ describe("simple lifecycle test (put, get, remove) and fully qualified path ", (
     }
   });
 
+  it("describeParameters() returns list with user data", async () => {
+    const params = await ssm.describeParameters();
+    expect(params).to.be.an("array");
+    params.forEach(p => {
+      expect(p.Name).to.be.a("string");
+    });
+  });
+
   it("LIST with 'path' returns results with encrypted value", async () => {
     const params = await ssm.list("/test/1/firebase");
 
@@ -156,7 +164,10 @@ describe("more complex lifecycle tests (lists, toEnv, remove) → ", () => {
       await ssm.put(PATH2, VALUE2, { override: true });
       await ssm.put(PATH3, VALUE3, { override: true });
     } catch (e) {
-      console.log(`  - Problem putting parameter to setup tests [ssm]: `, e.message);
+      console.log(
+        `  - Problem putting parameter to setup tests [ssm]: `,
+        e.message
+      );
       process.exit();
     }
   });

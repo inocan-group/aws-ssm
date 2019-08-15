@@ -1,6 +1,6 @@
 import commandLineArgs = require("command-line-args");
 import chalk from "chalk";
-import { IOptionDefinition, IAwsProfile } from "./@types";
+import { IAwsProfile } from "./@types";
 import { globalOptionDefinition, inverted } from "../ssm";
 import help from "./help";
 import { buildServerlessConfig } from "./serverless";
@@ -42,7 +42,10 @@ export async function handler(argv: string[], opts: IDictionary) {
   }
 
   // get config
-  const [profile, profileName] = (await getProfile(list)) as [IAwsProfile, string];
+  const [profile, profileName] = (await getProfile(list)) as [
+    IAwsProfile,
+    string
+  ];
   const path = list.path.slice(0, 1) === "/" ? list.path : `/${list.path}`;
   if (list.region) {
     profile.region = list.region;
@@ -52,10 +55,14 @@ export async function handler(argv: string[], opts: IDictionary) {
   }
   // execute
   console.log(
-    `- Using the AWS ${chalk.bold.green(profileName)} profile in the ${chalk.bold.green(
+    `- Using the AWS ${chalk.bold.green(
+      profileName
+    )} profile in the ${chalk.bold.green(
       profile.region
     )} region to ${chalk.bold("list")} all parameters in ssm ${
-      path ? 'which starts with "' + chalk.bold.green(path) + '" in the name' : "."
+      path
+        ? 'which starts with "' + chalk.bold.green(path) + '" in the name'
+        : "."
     }.`
   );
   const ssm = new SSM({ profile });
@@ -107,8 +114,12 @@ function displayResults(list: IDictionary, results: ISsmParameter<string>[]) {
   console.log(results);
 
   results.map(r => {
-    const date = DateTime.fromJSDate(r.LastModifiedDate).toFormat("dd LLL yyyy");
-    const time = DateTime.fromJSDate(r.LastModifiedDate).toFormat("h:mm a  ZZZZ");
+    const date = DateTime.fromJSDate(r.LastModifiedDate).toFormat(
+      "dd LLL yyyy"
+    );
+    const time = DateTime.fromJSDate(r.LastModifiedDate).toFormat(
+      "h:mm a  ZZZZ"
+    );
     const parts: string[] = r.Name.split("/").filter((i: string) => i);
 
     if (parts.length === 4) {
