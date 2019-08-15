@@ -214,10 +214,15 @@ export class SSM {
    * and _does not_ include the value of the secret.
    */
   public async describeParameters(
-    options: { MaxResults?: number } = { MaxResults: 100 }
+    options: { MaxResults?: number; NextToken?: string } = { MaxResults: 50 }
   ) {
     const describeParameters = this._ssm.describeParameters(options).promise();
-    const results = await describeParameters;
+    let results = await describeParameters;
+    if (results.NextToken) {
+      options.NextToken = results.NextToken;
+      const r2 = await this._ssm.describeParameters(options).promise();
+      results.Parameters = results.Parameters.concat(r2.Parameters);
+    }
     return results.Parameters;
   }
 
