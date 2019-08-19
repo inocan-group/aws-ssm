@@ -1,6 +1,6 @@
 # aws-ssm
 
-![MIT license](https://img.shields.io/apm/l/:aws-ssm.svg)
+![ ](https://img.shields.io/npm/l/aws-ssm?label=license&logo=MIT)
 
 Helps to provide a simple interaction with **AWS's**
 [SSM Parameter Store](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/SSM.html#getParameter-property).
@@ -47,6 +47,13 @@ function values(path, options);
 function remove(name, options);
 // get a hash of SSM values (decrypted) by module name
 function modules(moduleNames[], options)
+
+/**
+ * very similar to **list** but uses a differnt API endpoint which
+ * loses the ability to bring back _values_ but adds the user
+ * who last updated the parameter.
+ */
+function describeParameters();
 ```
 
 ## Opinionated Naming

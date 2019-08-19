@@ -1,6 +1,6 @@
 {
   "name": "aws-ssm",
-  "version": "0.3.1",
+  "version": "0.3.4",
   "description": "aws-ssm",
   "license": "MIT",
   "repository": "https://github.com/inocan-group/aws-ssm",
@@ -42,6 +42,7 @@
     "chai": "^4.2.0",
     "command-line-args": "^5.1.0",
     "command-line-usage": "^5.0.5",
+    "do-devops": "^0.1.5",
     "faker": "^4.1.0",
     "handlebars": "^4.1.2",
     "inquirer": "^6.2.1",

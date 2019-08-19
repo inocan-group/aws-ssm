@@ -6,7 +6,7 @@ import {
   ISsmRemoveOptions,
   ISsmListOptions,
   ISsmGetOptions,
-  ISsmSetOptions,
+  ISsmPutOptions,
   SsmValue,
   ISsmConfig,
   SsmValueType,
@@ -16,6 +16,7 @@ import {
   ISsmModuleOptions,
   ISsmExportsOutput
 } from "./types";
+import { parseForNameComponents } from "./parseForNameComponents";
 import { IDictionary, createError } from "common-types";
 import {
   coerceValueToString,
@@ -27,8 +28,6 @@ import {
 import { SsmError } from "./SsmError";
 
 export type GetParametersByPathRequest = import("aws-sdk").SSM.GetParametersByPathRequest;
-
-const DEFAULT_VERSION = 1;
 
 export * from "./types";
 
@@ -91,7 +90,9 @@ export class SSM {
     options: ISsmGetOptions = {}
   ): Promise<ISsmGetResult> {
     const request: AwsSSM.GetParameterRequest = {
-      Name: buildPathFromNameComponents(parseForNameComponents(Name))
+      Name: options.nonStandardPath
+        ? Name
+        : buildPathFromNameComponents(parseForNameComponents(Name))
     };
 
     if (options.decrypt) {
@@ -143,7 +144,7 @@ export class SSM {
   public async put(
     Name: string,
     Value: SsmValue,
-    options: ISsmSetOptions = {}
+    options: ISsmPutOptions = {}
   ): Promise<number> {
     const parts = parseForNameComponents(Name);
     Value = coerceValueToString(Value);
@@ -214,10 +215,15 @@ export class SSM {
    * and _does not_ include the value of the secret.
    */
   public async describeParameters(
-    options: { MaxResults?: number } = { MaxResults: 100 }
+    options: { MaxResults?: number; NextToken?: string } = { MaxResults: 50 }
   ) {
     const describeParameters = this._ssm.describeParameters(options).promise();
-    const results = await describeParameters;
+    let results = await describeParameters;
+    if (results.NextToken) {
+      options.NextToken = results.NextToken;
+      const r2 = await this._ssm.describeParameters(options).promise();
+      results.Parameters = results.Parameters.concat(r2.Parameters);
+    }
     return results.Parameters;
   }
 
@@ -319,57 +325,6 @@ export class SSM {
   }
 }
 
-export function parseForNameComponents(name: string) {
-  let stage = process.env.AWS_STAGE || process.env.NODE_ENV;
-  if (name.indexOf("/") === -1) {
-    // simple name, no components
-    if (!stage) {
-      notReady(name);
-    }
-    return {
-      stage,
-      version: DEFAULT_VERSION,
-      name
-    } as ISsmPathParts;
-  }
-
-  // there are "parts" defined; let's identify them
-  const parts = name.replace(/^\//, "").split("/");
-  const numOfParts = parts.length;
-  if (numOfParts === 2) {
-    // assumed to be app/name format
-    if (!stage) {
-      notReady(name);
-    }
-    return {
-      stage,
-      version: DEFAULT_VERSION,
-      module: parts[0],
-      name: parts[1]
-    };
-  } else if (numOfParts === 3) {
-    checkVersionNumber(parts);
-    return {
-      stage: parts[0],
-      version: Number(parts[1]),
-      name: parts[2]
-    };
-  } else if (numOfParts === 4) {
-    checkVersionNumber(parts);
-    return {
-      stage: parts[0],
-      version: Number(parts[1]),
-      module: parts[2],
-      name: parts[3]
-    };
-  } else {
-    throw createError(
-      `aws-ssm/invalid-format`,
-      `The "name" in an SSM parameter can be a simple string (aka, FOO) or a shorthand notation (aka, firebase/FOO) or a fully qualified notation (aka., test/1/firebase/FOO) but the passed in name -- ${name} -- was not recognized as any of these formats.`
-    );
-  }
-}
-
 export function buildPathFromNameComponents(parts: ISsmPathParts) {
   const base = `${parts.stage}/${String(parts.version)}`;
   const remaining = parts.module
@@ -377,22 +332,4 @@ export function buildPathFromNameComponents(parts: ISsmPathParts) {
     : `/${parts.name}`;
 
   return "/" + base + remaining;
-}
-
-function checkVersionNumber(parts: string[]) {
-  if (Number.isNaN(Number(parts[1]))) {
-    throw createError(
-      `aws-ssm/invalid-format`,
-      `You appear to be using a fully-qualified naming convension with the name "${parts.join(
-        "/"
-      )}" but the version specified [ ${parts[1]} ] is not a valid number!`
-    );
-  }
-}
-
-function notReady(name: string) {
-  throw new SsmError(
-    "aws-ssm/not-ready",
-    `You must set an environment stage before using the SSM api. To do this set either AWS_STAGE or NODE_ENV. Failed to meet this requirement when setting "${name}".`
-  );
 }
