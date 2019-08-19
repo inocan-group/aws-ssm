@@ -1,6 +1,8 @@
 import { CredentialsOptions } from "aws-sdk/lib/credentials";
 import { datetime, Omit } from "common-types";
 
+export const DEFAULT_VERSION = 1;
+
 export type SsmValue = string | string[] | number | boolean | object;
 /**
  * the allowed types in SSM, note that "StringList" is available but since
@@ -26,11 +28,6 @@ export interface ISsmConfig {
    * default to SecureString
    */
   defaultType?: SsmValueType;
-}
-
-export interface ISsmGetOptions {
-  cli?: boolean;
-  decrypt?: boolean;
 }
 
 export type ISsmExportsOutput<T = string> = IExportsOutputVerbose<T> &
@@ -86,7 +83,32 @@ export interface ISsmGetResult<T = ISsmPathParts> {
   lastUpdated: Date;
 }
 
-export interface ISsmSetOptions {
+export interface ISsmOptions {
+  /**
+   * `aws-ssm` encourage a standard naming convention for
+   * SSM path names which looks like this:
+   *
+   * ```sh
+   * / [ `stage` ] / [ `version` ] / [ `system` ] / [ `NAME` ]
+   * ```
+   *
+   * In some instances, however, you may need to deviate from
+   * this and in those instances you should set this flag to `true`
+   * so that no attempts are made to use environment variables to
+   * fit the naming to the convention.
+   */
+  nonStandardPath?: boolean;
+}
+
+/**
+ * options for when you are GET'ing a secret from SSM
+ */
+export interface ISsmGetOptions extends ISsmOptions {
+  cli?: boolean;
+  decrypt?: boolean;
+}
+
+export interface ISsmPutOptions extends ISsmOptions {
   /**
    * optionally provide a description of this variable, if none
    * is provided but the prior version of this variable had a
@@ -114,7 +136,7 @@ export interface ISsmSetOptions {
   encryptionKey?: string;
 }
 
-export interface ISsmListOptions {
+export interface ISsmListOptions extends ISsmOptions {
   /** restrict list to only those parameters at a particular path */
   path?: string;
   /** restrict list to only those parameters which have the given text in them */
@@ -125,7 +147,7 @@ export interface ISsmListOptions {
 
 export interface ISsmRemoveOptions {}
 
-export interface IValueOptions {
+export interface IValueOptions extends ISsmOptions {
   /** whether the values return should be decrypted; default is true */
   decrypt?: boolean;
 }
