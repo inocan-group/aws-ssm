@@ -17,7 +17,7 @@ import {
   ISsmExportsOutput
 } from "./types";
 import { parseForNameComponents } from "./parseForNameComponents";
-import { IDictionary, createError } from "common-types";
+import { IDictionary } from "common-types";
 import {
   coerceValueToString,
   findPriorDescription,
@@ -25,7 +25,6 @@ import {
   addModuleName,
   getSpecificVersion
 } from "./utils";
-import { SsmError } from "./SsmError";
 
 export type GetParametersByPathRequest = import("aws-sdk").SSM.GetParametersByPathRequest;
 
