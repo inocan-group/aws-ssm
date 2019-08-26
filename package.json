@@ -1,6 +1,6 @@
 {
   "name": "aws-ssm",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "aws-ssm",
   "license": "MIT",
   "repository": "https://github.com/inocan-group/aws-ssm",
@@ -11,15 +11,19 @@
     "ssm"
   ],
   "files": [
-    "dist"
+    "dist",
+    "bin"
   ],
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "typings": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/es/index.js",
+  "typings": "dist/es/index.d.ts",
+  "bin": {
+    "ssm": "node ./bin/ssm.js"
+  },
   "scripts": {
     "clean": "rimraf lib",
     "lint": "tslint --force --format verbose \"src/**/*.ts\"",
-    "build": "./node_modules/.bin/ts-node ./scripts/build.ts",
+    "build": "tsc && tsc -p tsconfig-es.json && tsc -p tsconfig-cli.json",
     "test": "./node_modules/.bin/ts-node ./scripts/test.ts "
   },
   "devDependencies": {

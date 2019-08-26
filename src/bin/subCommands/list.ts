@@ -1,4 +1,4 @@
-import commandLineArgs = require("command-line-args");
+import commandLineArgs from "command-line-args";
 import chalk from "chalk";
 import { IAwsProfile } from "./@types";
 import { globalOptionDefinition, inverted } from "../ssm";
