@@ -7,7 +7,7 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "noImplicitAny": true,
-    "outDir": "./lib/cjs",
+    "outDir": "./dist/cjs",
     "removeComments": false,
     "typeRoots": ["./node_modules/@types"],
     "esModuleInterop": true,

@@ -5,7 +5,7 @@
     "moduleResolution": "node",
     "target": "es2017",
     "noImplicitAny": true,
-    "outDir": "./lib/es",
+    "outDir": "./dist/es",
     "preserveConstEnums": true,
     "removeComments": false,
     "typeRoots": ["./node_modules/@types"],
