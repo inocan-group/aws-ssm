@@ -27,7 +27,7 @@ import {
 } from "./utils";
 
 export type GetParametersByPathRequest = import("aws-sdk").SSM.GetParametersByPathRequest;
-
+export * from "./parseForNameComponents";
 export * from "./types";
 
 export class SSM {
