@@ -1,14 +1,16 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "module": "commonjs",
+    "module": "esnext",
     "moduleResolution": "node",
     "target": "es2017",
     "noImplicitAny": true,
-    "outDir": "./lib",
+    "outDir": "./lib/es",
     "preserveConstEnums": true,
-    "removeComments": true,
-    "typeRoots": ["./node_modules/@types"]
+    "removeComments": false,
+    "typeRoots": ["./node_modules/@types"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "**/*-spec.ts"]
