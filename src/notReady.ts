@@ -11,7 +11,7 @@ export function notReady(name: string) {
     "aws-ssm/not-ready",
     `You must set an environment ${chalk.italic(
       "stage"
-    )} before using the SSM api. To do this, set either AWS_STAGE or NODE_ENV.\n  Alternatively you can pass in ${chalk.bgWhite.blackBright(
+    )} before using the SSM api. To do this, set either AWS_STAGE or NODE_ENV.\n  Alternatively you can pass in ${chalk.bgWhite.black(
       "{ nonStandardPath: true }"
     )} to the options property of get(), set(), list(), or delete().`
   );
