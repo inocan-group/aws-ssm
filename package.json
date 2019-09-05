@@ -1,6 +1,6 @@
 {
   "name": "aws-ssm",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "aws-ssm",
   "license": "MIT",
   "repository": "https://github.com/inocan-group/aws-ssm",
