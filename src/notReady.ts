@@ -9,10 +9,6 @@ import chalk from "chalk";
 export function notReady(name: string) {
   throw new SsmError(
     "aws-ssm/not-ready",
-    `You must set an environment ${chalk.italic(
-      "stage"
-    )} before using the SSM api. To do this, set either AWS_STAGE or NODE_ENV.\n  Alternatively you can pass in ${chalk.bgWhite.black(
-      "{ nonStandardPath: true }"
-    )} to the options property of get(), set(), list(), or delete().`
+    `You must set an environment "stage" before using the SSM api. To do this, set either AWS_STAGE or NODE_ENV.\n  Alternatively you can pass in { nonStandardPath: true } to the options property of get(), set(), list(), or delete().`
   );
 }

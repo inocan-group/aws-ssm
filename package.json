@@ -1,6 +1,6 @@
 {
   "name": "aws-ssm",
-  "version": "0.3.8",
+  "version": "0.3.9",
   "description": "aws-ssm",
   "license": "MIT",
   "repository": "https://github.com/inocan-group/aws-ssm",
@@ -54,13 +54,13 @@
     "ts-node": "^8.3.0",
     "tslint": "^5.19.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.6.2"
   },
   "peerDependencies": {},
   "engines": {
     "node": ">=8.0.0"
   },
   "dependencies": {
-    "common-types": "^1.11.18"
+    "common-types": "^1.11.23"
   }
 }
