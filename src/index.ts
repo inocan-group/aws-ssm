@@ -197,8 +197,9 @@ export class SSM {
     };
 
     const ssmParameters: AwsSSM.Parameter[] = [];
+    let response;
     do {
-      var response = await this._ssm.getParametersByPath(request).promise();
+      response = await this._ssm.getParametersByPath(request).promise();
       ssmParameters.push(...response.Parameters);
     } while (response.NextToken && (request.NextToken = response.NextToken));
 
