@@ -192,15 +192,18 @@ export class SSM {
 
     const request: GetParametersByPathRequest = {
       Path: o.path || "/",
-      Recursive: true
+      Recursive: true,
+      WithDecryption: o.decrypt
     };
 
-    if (o.decrypt) {
-      request.WithDecryption = true;
-    }
+    const ssmParameters: AwsSSM.Parameter[] = [];
+    let response;
+    do {
+      response = await this._ssm.getParametersByPath(request).promise();
+      ssmParameters.push(...response.Parameters);
+    } while (response.NextToken && (request.NextToken = response.NextToken));
 
-    const data = await this._ssm.getParametersByPath(request).promise();
-    const parameters: ISsmParameter[] = data.Parameters.map(i => ({
+    const parameters: ISsmParameter[] = ssmParameters.map(i => ({
       ...i,
       encrypted: o.decrypt ? false : true
     }));
