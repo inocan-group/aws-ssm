@@ -1,6 +1,6 @@
 {
   "name": "aws-ssm",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "description": "aws-ssm",
   "license": "MIT",
   "repository": "https://github.com/inocan-group/aws-ssm",
@@ -12,7 +12,8 @@
   ],
   "files": [
     "dist",
-    "bin"
+    "package.json",
+    "tsconfig-es.json"
   ],
   "main": "dist/cjs/index.js",
   "module": "dist/es/index.js",
@@ -38,29 +39,28 @@
     "@types/rimraf": "^2.0.2",
     "@types/table": "^4.0.5",
     "async-shelljs": "^0.1.2",
-    "aws-sdk": "^2.518.0",
-    "bili": "^4.7.2",
+    "aws-sdk": "^2.556.0",
     "chai": "^4.2.0",
-    "do-devops": "^0.1.8",
+    "do-devops": "^0.2.3",
     "faker": "^4.1.0",
-    "handlebars": "^4.1.2",
+    "handlebars": "^4.4.5",
     "js-yaml": "^3.13.1",
     "lodash.first": "^3.0.0",
     "lodash.last": "^3.0.0",
-    "mocha": "^6.2.0",
+    "mocha": "^6.2.2",
     "prettier": "^1.18.2",
     "rimraf": "^3.0.0",
     "test-console": "^1.1.0",
-    "ts-node": "^8.3.0",
+    "ts-node": "^8.4.1",
     "tslint": "^5.19.0",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.6.2"
+    "typescript": "^3.6.4"
   },
   "peerDependencies": {},
   "engines": {
     "node": ">=8.0.0"
   },
   "dependencies": {
-    "common-types": "^1.11.23"
+    "common-types": "^1.12.12"
   }
 }
