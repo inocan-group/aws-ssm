@@ -145,7 +145,7 @@ export interface ISsmListOptions extends ISsmOptions {
   decrypt?: boolean;
 }
 
-export interface ISsmRemoveOptions {}
+export interface ISsmRemoveOptions extends ISsmOptions {}
 
 export interface IValueOptions extends ISsmOptions {
   /** whether the values return should be decrypted; default is true */
