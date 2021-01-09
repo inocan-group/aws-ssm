@@ -1140,7 +1140,7 @@ commander@^2.12.1, commander@^2.20.0:
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
   integrity sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==
 
-common-types@^1.12.12, common-types@^1.15.7, common-types@^1.18.3, common-types@^1.8.16:
+"common-types@> 1.15.0", common-types@^1.12.12, common-types@^1.15.7, common-types@^1.8.16:
   version "1.18.3"
   resolved "https://registry.yarnpkg.com/common-types/-/common-types-1.18.3.tgz#7b90cfde82feb05df5f46cc6fa4c53b0084461b1"
   integrity sha512-gc1ljpfrXkDpnU4fpF5TZZFh5EUKMSDdqk01X797nrFuXfKAMHMy2Z30RU0exYoBrJN58P1tUd2gTVRfYmqwZQ==

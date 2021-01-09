@@ -61,6 +61,6 @@
     "node": ">=8.0.0"
   },
   "dependencies": {
-    "common-types": "^1.18.3"
+    "common-types": "> 1.15.0"
   }
 }
