@@ -47,7 +47,9 @@ export function setupEnv() {
     process.env.AWS_STAGE = "test";
   }
   const current = process.env;
-  const yamlConfig: IDictionary = yaml.safeLoad(fs.readFileSync(ENV_FILE, "utf8"));
+  const yamlConfig: IDictionary = yaml.safeLoad(
+    fs.readFileSync(ENV_FILE, "utf8")
+  ) as object;
   const combined: IDictionary = {
     ...yamlConfig[process.env.AWS_STAGE],
     ...process.env
@@ -164,7 +166,10 @@ export async function loadData(file: string) {
   });
 }
 
-export async function loadTemplate(file: string, replacements: IDictionary = {}) {
+export async function loadTemplate(
+  file: string,
+  replacements: IDictionary = {}
+) {
   const text = await loadData(file);
   const template = Handlebars.compile(text);
   return template(replacements);
