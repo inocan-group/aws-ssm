@@ -48,6 +48,22 @@ describe("simple lifecycle test (put, get, remove) and fully qualified path ", (
     }
   });
 
+  describe("simple lifecycle test (put, get, remove) nonStandard Path and fully qualified path ", () => {
+    const ssm = new SSM({ profile: "ssm" });
+    const PATH = "/my/custom/path/FOO";
+    const VALUE = "this is a for nonStandard path test";
+    const response = await ssm.put(PATH, VALUE, { override: true, nonStandardPath: true });
+    expect(response).to.be.an("number");
+    it("DELETE nonStandard works", async () => {
+      try {
+        const noExist = await ssm.delete(PATH, {nonStandardPath: true});
+      } catch (e) {
+        console.log(`Problem deleting parameter ${PATH}`, e.message);
+        throw e;
+      }
+    });
+
+    
   it("PUT path based value works and parts are identified", async () => {
     try {
       const response = await ssm.put(PATH, VALUE, { override: true });

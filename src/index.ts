@@ -309,7 +309,9 @@ export class SSM {
 
   public async delete(Name: string, options: ISsmRemoveOptions = {}) {
     const request: AwsSSM.DeleteParameterRequest = {
-      Name: buildPathFromNameComponents(parseForNameComponents(Name))
+      Name: options.nonStandardPath
+        ? Name
+        : buildPathFromNameComponents(parseForNameComponents(Name))
     };
 
     try {
